@@ -50,12 +50,12 @@ class EventUploadService: NSObject {
     
     func uploadBatch(events: [Event]) {
         guard let request = createPostRequest(events: events) else { return }
-        URLSession.shared.dataTask(with: request) // TODO: retry if error.
+        URLSession.shared.dataTask(with: request).resume() // TODO: retry if failed.
     }
     
     func createPostRequest(events: [Event]) -> URLRequest? {
         let parameters: [String: Any] = ["events": events.map { $0.toDict() }, "app_token": "abcdefghij"]
-        guard let url = URL(string: "http://midgar-flask.herokuapp.com/api/events") else { return nil }
+        guard let url = URL(string: "https://midgar-flask.herokuapp.com/api/events") else { return nil }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("Application/json", forHTTPHeaderField: "Content-Type")
