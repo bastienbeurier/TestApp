@@ -11,11 +11,17 @@ import UIKit
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
-    var window: UIWindow?
-
+    var midgarWindow: MidgarWindow?
+    var window: UIWindow? {
+        get {
+            midgarWindow = midgarWindow ?? MidgarWindow(frame: UIScreen.main.bounds)
+            return midgarWindow
+        }
+        set { }
+    }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        midgarWindow?.startMonitoring()
         return true
     }
 

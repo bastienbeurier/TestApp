@@ -19,6 +19,7 @@
 		0B6571FF2237EDCD002835F7 /* TableDetailVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6571FE2237EDCD002835F7 /* TableDetailVC.swift */; };
 		0B6572012237EEA5002835F7 /* StandardVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6572002237EEA5002835F7 /* StandardVC.swift */; };
 		0B6572032237EEB0002835F7 /* StandardDetailVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6572022237EEB0002835F7 /* StandardDetailVC.swift */; };
+		0B6572062237FC4B002835F7 /* Midgar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B6572052237FC4B002835F7 /* Midgar.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +37,7 @@
 		0B6571FE2237EDCD002835F7 /* TableDetailVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableDetailVC.swift; sourceTree = "<group>"; };
 		0B6572002237EEA5002835F7 /* StandardVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandardVC.swift; sourceTree = "<group>"; };
 		0B6572022237EEB0002835F7 /* StandardDetailVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandardDetailVC.swift; sourceTree = "<group>"; };
+		0B6572052237FC4B002835F7 /* Midgar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Midgar.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,6 +76,7 @@
 				0B6571E8223576AA002835F7 /* Assets.xcassets */,
 				0B6571EA223576AA002835F7 /* LaunchScreen.storyboard */,
 				0B6571ED223576AA002835F7 /* Info.plist */,
+				0B6572052237FC4B002835F7 /* Midgar.swift */,
 			);
 			path = TestApp;
 			sourceTree = "<group>";
@@ -171,6 +174,7 @@
 				0B6571F72237ED93002835F7 /* TableVC.swift in Sources */,
 				0B6571F52237ED88002835F7 /* CollectionVC.swift in Sources */,
 				0B6572012237EEA5002835F7 /* StandardVC.swift in Sources */,
+				0B6572062237FC4B002835F7 /* Midgar.swift in Sources */,
 				0B6572032237EEB0002835F7 /* StandardDetailVC.swift in Sources */,
 				0B6571E2223576A8002835F7 /* AppDelegate.swift in Sources */,
 			);
