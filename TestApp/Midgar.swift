@@ -8,37 +8,75 @@ import UIKit
 
 class MidgarWindow: UIWindow {
     
-    var screenDetectionTimer: Timer?
-    var currentScreen = ""
-    var eventBatch: [Event] = []
-    var eventUploadTimer: Timer?
-    let eventUploadService = EventUploadService()
+    fileprivate var screenDetectionTimer: Timer?
+    fileprivate var currentScreen = ""
+    fileprivate var eventBatch: [Event] = []
+    fileprivate var eventUploadTimer: Timer?
+    fileprivate let eventUploadService = EventUploadService()
+    fileprivate var shutdown = false
+    fileprivate var appToken = ""
+    fileprivate var detectionFrequency = 0.5 // in seconds
+    fileprivate var uploadFrequency = 10.0 // in seconds
+    fileprivate var uploadTimerLoopCount = 0
+    fileprivate var checkAppEnabledFrequency = 6 // in upload timer loops
     
-    func stopMonitoring() {
-        screenDetectionTimer?.invalidate()
+    func start(appToken: String) {
+        guard !shutdown else { return }
+        self.appToken = appToken
+        checkAppEnabled()
     }
     
-    func startMonitoring() {
-        screenDetectionTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true, block: { (_) in
-            print("detection pass")
+    func stop() {
+        guard !shutdown else { return }
+        stopMonitoring()
+    }
+    
+    private func startMonitoring() {
+        guard screenDetectionTimer == nil && eventUploadTimer == nil && !shutdown else { return }
+        
+        screenDetectionTimer = Timer.scheduledTimer(withTimeInterval: detectionFrequency, repeats: true, block: { (_) in
             let currentScreen = UIApplication.topViewControllerDescription()
             
             if currentScreen != self.currentScreen {
-                print("NEW SCREEN DETECTED: \(currentScreen)")
                 self.currentScreen = currentScreen
                 self.eventBatch.append(Event(screen: currentScreen))
             }
         })
         
-        eventUploadTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true, block: { (_) in
-            print("upload pass")
+        eventUploadTimer = Timer.scheduledTimer(withTimeInterval: uploadFrequency, repeats: true, block: { (_) in
             if self.eventBatch.count > 0 {
-                print("UPLOAD BATCH: \(self.eventBatch.count)")
-                self.eventUploadService.uploadBatch(events: self.eventBatch)
+                self.eventUploadService.uploadBatch(events: self.eventBatch, appToken: self.appToken)
                 self.eventBatch = []
+            }
+            
+            self.uploadTimerLoopCount += 1
+            if self.uploadTimerLoopCount >= self.checkAppEnabledFrequency {
+                self.uploadTimerLoopCount = 0
+                self.checkAppEnabled()
             }
         })
     }
+    
+    private func stopMonitoring() {
+        screenDetectionTimer?.invalidate()
+        eventUploadTimer?.invalidate()
+        screenDetectionTimer = nil
+        eventUploadTimer = nil
+    }
+    
+    private func checkAppEnabled() {
+        eventUploadService.checkKillSwitch(appToken: appToken) { (data, response, error) in
+            DispatchQueue.main.async {
+                if let httpStatus = response as? HTTPURLResponse, httpStatus.statusCode == 200 {
+                    self.startMonitoring()
+                } else {
+                    self.shutdown = true
+                    self.stopMonitoring()
+                }
+            }
+        }
+    }
+
 }
 
 // ----------------------------------
@@ -46,16 +84,26 @@ class MidgarWindow: UIWindow {
 // ----------------------------------
 
 
-class EventUploadService: NSObject {
+private class EventUploadService: NSObject {
     
-    func uploadBatch(events: [Event]) {
-        guard let request = createPostRequest(events: events) else { return }
+    fileprivate let baseUrl = "https://midgar-flask.herokuapp.com/api"
+    
+    func checkKillSwitch(appToken: String, completion: @escaping (Data?, URLResponse?, Error?) -> Void) {
+        let parameters: [String: Any] = ["app_token": appToken]
+        let url = baseUrl + "/apps/check-kill-switch"
+        guard let request = createPostRequest(url: url, parameters: parameters) else { return }
+        URLSession.shared.dataTask(with: request, completionHandler: completion).resume()
+    }
+    
+    func uploadBatch(events: [Event], appToken: String) {
+        let parameters: [String: Any] = ["events": events.map { $0.toDict() }, "app_token": appToken]
+        let url = baseUrl + "/events"
+        guard let request = createPostRequest(url: url, parameters: parameters) else { return }
         URLSession.shared.dataTask(with: request).resume() // TODO: retry if failed.
     }
     
-    func createPostRequest(events: [Event]) -> URLRequest? {
-        let parameters: [String: Any] = ["events": events.map { $0.toDict() }, "app_token": "abcdefghij"]
-        guard let url = URL(string: "https://midgar-flask.herokuapp.com/api/events") else { return nil }
+    func createPostRequest(url: String, parameters: [String: Any]) -> URLRequest? {
+        guard let url = URL(string: url) else { return nil }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("Application/json", forHTTPHeaderField: "Content-Type")
@@ -72,7 +120,7 @@ class EventUploadService: NSObject {
 // MARK: Event Model
 // ----------------------------------
 
-struct Event {
+private struct Event {
     
     let type: String
     let screen: String
